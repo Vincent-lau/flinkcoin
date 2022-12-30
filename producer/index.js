@@ -3,15 +3,15 @@ const ip = require('ip')
 const { Kafka, CompressionTypes, logLevel } = require('kafkajs')
 const WebSocket = require('ws');
 
-const host = process.env.HOST_IP || ip.address()
+// const host = process.env.K || ip.address()
 
 const kafka = new Kafka({
   logLevel: logLevel.DEBUG,
-  brokers: [`${host}:9092`],
+  brokers: [process.env.KAFKA_BROKER],
   clientId: 'example-producer',
 })
 
-const topic = 'topic-test'
+const topic = 'coinbase'
 const producer = kafka.producer()
 
 
@@ -49,7 +49,6 @@ async function setup() {
     }));
 
     ws.on('message', async msg => {
-      console.log(msg);
       await producer.send({
         topic: topic,
         messages: [
