@@ -34,7 +34,6 @@ services:
       KAFKA_BROKER: "kafka1:9092"
       KAFKA_TOPIC: "coinbase"
       NODE_ENV: "production"
-      PRODUCTS: "ETH-USD,BTC-USD"
     depends_on:
       - kafka
 

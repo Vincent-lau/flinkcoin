@@ -59,25 +59,26 @@ public class DataStreamJob {
             .setBootstrapServers(kafkaBroker)
             .setTopics(topic)
             .setGroupId("my-group")
-            .setStartingOffsets(OffsetsInitializer.earliest())
+            .setStartingOffsets(OffsetsInitializer.latest())
             .setValueOnlyDeserializer(new SimpleStringSchema())
             .build();
 
     final DataStream<String> input = env.fromSource(
         source, WatermarkStrategy.noWatermarks(), "Kafka Source");
 
-    // final DataStream<String> input = env.addSource(
-    //     new FlinkKafkaConsumer<>(topic, new SimpleStringSchema(),
-    //     properties));
+    // input.addSink(new PrintSinkFunction<>()).name("PrintSink");
 
     getL2UpdatesStream(input)
-        .map(obj -> Tuple2.of(obj.productId, 1))
-        .returns(Types.TUPLE(Types.STRING, Types.INT))
-        .keyBy(tuple2 -> tuple2.f0)
-        .window(TumblingProcessingTimeWindows.of(Time.seconds(15)))
-        .sum(1)
+        .keyBy(L2UpdateMessage::getProductId)
+        .process(new PricePredictor())
         .addSink(new PrintSinkFunction<>())
         .name("PrintSink");
+
+    // .map(obj -> Tuple2.of(obj.productId, 1))
+    // .returns(Types.TUPLE(Types.STRING, Types.INT))
+    // .keyBy(tuple2 -> tuple2.f0)
+    // .window(TumblingProcessingTimeWindows.of(Time.seconds(15)))
+    // .sum(1)
 
     env.execute("Flink consumer");
 
@@ -108,22 +109,8 @@ public class DataStreamJob {
         .filter(
             obj
             -> obj.getAsJsonPrimitive("type").getAsString().equals("l2update"))
-        .map(obj -> gson.fromJson(obj.toString(), L2UpdateMessage.class))
+        .map(obj -> gson.fromJson(obj.toString(), L2Update.class))
+        .map(L2UpdateMessage::new)
         .name("L2UpdateMessage");
-  }
-
-  public static class Person {
-    public String name;
-    public Integer age;
-    public Person() {}
-
-    public Person(String name, Integer age) {
-      this.name = name;
-      this.age = age;
-    }
-
-    public String toString() {
-      return this.name.toString() + ": age " + this.age.toString();
-    }
   }
 }

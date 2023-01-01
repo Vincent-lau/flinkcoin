@@ -31,20 +31,19 @@ async function setup() {
       "type": "subscribe",
       "product_ids": [
         // ...products
-        "ETH-BTC",
-        "ETH-USD"
+        "BTC-USD"
       ],
       "channels": [
-        "level2",
+        "level2_batch",
         "heartbeat",
-        {
-          "name": "ticker",
-          "product_ids": [
-            // ...products
-            "ETH-BTC",
-            "ETH-USD"
-          ]
-        }
+        // {
+        //   "name": "ticker",
+        //   "product_ids": [
+        //     // ...products
+        //     "ETH-BTC",
+        //     "ETH-USD"
+        //   ]
+        // }
       ]
     }));
 
