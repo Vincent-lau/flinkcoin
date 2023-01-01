@@ -6,7 +6,7 @@ COPY ./src ./src
 RUN mvn dependency:go-offline -B
 RUN mvn package
 
-FROM openjdk:11-alpine
+FROM eclipse-temurin:11
 WORKDIR /usr/src/app
 COPY --from=maven /usr/src/app/target/flinkcoin-0.1.jar ./flinkcoin.jar
 
