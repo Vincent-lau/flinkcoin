@@ -2,6 +2,7 @@ zookeeper
 kafka
 node_modules/
 package-lock.json
+docker/
 
 ##############################
 ## Java

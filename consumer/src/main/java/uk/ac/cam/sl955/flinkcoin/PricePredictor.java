@@ -9,7 +9,7 @@ import org.apache.flink.streaming.api.functions.ProcessFunction.Context;
 import org.apache.flink.util.Collector;
 
 public class PricePredictor
-    extends KeyedProcessFunction<String, L2UpdateMessage, String> {
+    extends KeyedProcessFunction<String, L2UpdateMessage, L2UpdatePrice> {
 
   private static final long serialVersionUID = 1L;
   private static final double SMOOTHING = 0.5;
@@ -27,7 +27,7 @@ public class PricePredictor
 
   @Override
   public void processElement(L2UpdateMessage value, Context ctx,
-                             Collector<String> out) throws Exception {
+                             Collector<L2UpdatePrice> out) throws Exception {
 
     Double currentAvg = avg.value();
 
@@ -41,7 +41,6 @@ public class PricePredictor
 
     avg.update(currentAvg);
 
-    out.collect(
-        String.format("%s Current average price is %.2f\n", value, currentAvg));
+    out.collect(new L2UpdatePrice(value, currentAvg));
   }
 }

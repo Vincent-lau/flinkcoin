@@ -1,12 +1,26 @@
 package uk.ac.cam.sl955.flinkcoin;
 
 import com.google.gson.annotations.SerializedName;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import java.util.ArrayList;
 
+@Data
+class L2UpdatePrice {
+  @SerializedName("product_id") public String productId;
+  public long time;
+  public double price;
+
+  public L2UpdatePrice(L2UpdateMessage l2UpdateMessage, double price) {
+    this.productId = l2UpdateMessage.getProductId();
+    Timestamp ts = Timestamp.valueOf(l2UpdateMessage.getTime().replace("T", " ").replace("Z", ""));
+    this.time = ts.getTime();
+    this.price = price;
+  }
+}
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -22,9 +36,7 @@ class L2Update extends BaseMessage {
     this.changesList = l2Update.getChangesList();
   }
 
-  public List<List<String>> getChangesList() {
-    return changesList;
-  }
+  public List<List<String>> getChangesList() { return changesList; }
 }
 
 @Data
@@ -48,9 +60,9 @@ public class L2UpdateMessage extends L2Update {
   }
 
   public String toString() {
-    return String.format("L2UpdateMessage: %s %s %s %s", productId, time, changesList, changes);
+    return String.format("L2UpdateMessage: %s %s %s %s", productId, time,
+                         changesList, changes);
   }
-
 }
 
 enum Side { @SerializedName("buy") BUY, @SerializedName("sell") SELL }
