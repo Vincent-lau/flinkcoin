@@ -8,7 +8,10 @@ import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.ProcessFunction.Context;
 import org.apache.flink.util.Collector;
 
-public class PricePredictor
+
+
+
+public class PriceAverager
     extends KeyedProcessFunction<String, L2UpdateMessage, L2UpdatePrice> {
 
   private static final long serialVersionUID = 1L;
@@ -29,18 +32,28 @@ public class PricePredictor
   public void processElement(L2UpdateMessage value, Context ctx,
                              Collector<L2UpdatePrice> out) throws Exception {
 
-    Double currentAvg = avg.value();
+    // Double currentAvg = avg.value();
 
-    if (currentAvg == null) {
-      currentAvg = 0.0;
-    }
+    // if (currentAvg == null) {
+    //   currentAvg = 0.0;
+    // }
 
-    for (Change c : value.getChanges()) {
-      currentAvg = SMOOTHING * c.getPrice() + (1 - SMOOTHING) * currentAvg;
-    }
+    double bp = value.getChanges()
+                     .stream()
+                     .filter(c -> c.getSide() == Side.BUY)
+                     .mapToDouble(Change::getPrice)
+                     .average()
+                     .orElse(0.0);
 
-    avg.update(currentAvg);
+    double sp = value.getChanges()
+                      .stream()
+                      .filter(c -> c.getSide() == Side.SELL)
+                      .mapToDouble(Change::getPrice)
+                      .average()
+                      .orElse(0.0); 
 
-    out.collect(new L2UpdatePrice(value, currentAvg));
+    // avg.update(currentAvg);
+
+    out.collect(new L2UpdatePrice(value, bp, sp));
   }
 }

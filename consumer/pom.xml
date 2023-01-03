@@ -49,6 +49,7 @@ under the License.
 				<enabled>true</enabled>
 			</snapshots>
 		</repository>
+
 	</repositories>
 
 	<dependencies>
@@ -136,6 +137,15 @@ under the License.
 			<version>1.18.24</version>
 			<scope>provided</scope>
 		</dependency>
+
+
+		<dependency>
+				<groupId>com.github.signaflo</groupId>
+				<artifactId>timeseries</artifactId>
+				<version>0.4</version>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>

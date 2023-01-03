@@ -8,19 +8,7 @@ import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-@Data
-class L2UpdatePrice {
-  @SerializedName("product_id") public String productId;
-  public long time;
-  public double price;
 
-  public L2UpdatePrice(L2UpdateMessage l2UpdateMessage, double price) {
-    this.productId = l2UpdateMessage.getProductId();
-    Timestamp ts = Timestamp.valueOf(l2UpdateMessage.getTime().replace("T", " ").replace("Z", ""));
-    this.time = ts.getTime();
-    this.price = price;
-  }
-}
 
 @Data
 @EqualsAndHashCode(callSuper = true)
