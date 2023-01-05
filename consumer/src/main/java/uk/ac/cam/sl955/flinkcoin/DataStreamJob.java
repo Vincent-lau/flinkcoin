@@ -10,7 +10,6 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.common.functions.FilterFunction;
-import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.common.typeinfo.Types;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -22,7 +21,6 @@ import org.apache.flink.streaming.api.functions.sink.PrintSinkFunction;
 import org.apache.flink.streaming.api.windowing.assigners.*;
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.streaming.connectors.influxdb.InfluxDBConfig;
-import org.apache.flink.streaming.connectors.influxdb.InfluxDBPoint;
 import org.apache.flink.streaming.connectors.influxdb.InfluxDBSink;
 import org.apache.flink.table.api.*;
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment;
@@ -95,37 +93,24 @@ public class DataStreamJob {
     DataStream<L2UpdatePrice> processedData =
         parsedData.keyBy(L2UpdateMessage::getProductId)
             .process(new PriceAverager())
+            .filter(L2UpdatePrice::validPrice)
             .name("processedData");
 
     // processedData.addSink(new PrintSinkFunction<>()).name("PrintSink");
 
-    processedData
-        .map(new RichMapFunction<L2UpdatePrice, InfluxDBPoint>() {
-          @Override
-          public InfluxDBPoint map(L2UpdatePrice l2) throws Exception {
-
-            String measurement = l2.getProductId();
-
-            long timestamp = l2.getTimeLong();
-
-            HashMap<String, Object> fields = new HashMap<>();
-            fields.put("buy", l2.getBuyPrice());
-            fields.put("sell", l2.getSellPrice());
-
-            return new InfluxDBPoint(measurement, timestamp,
-                                     new HashMap<String, String>(), fields);
-          }
-        })
+    processedData.map(new L2ToInflux())
         .name("InfluxDB data point")
         .addSink(new InfluxDBSink(influxDBConfig))
         .name("InfluxDBSink");
 
     // TODO change to event time with watermarks?
     processedData.keyBy(L2UpdatePrice::getProductId)
-        .window(SlidingProcessingTimeWindows.of(Time.seconds(3), Time.seconds(1)))
+        .window(
+            SlidingProcessingTimeWindows.of(Time.seconds(3), Time.seconds(1)))
         .process(new PriceArima())
-        .addSink(new PrintSinkFunction<>())
-        .name("PrintSink");
+        .map(new L2PredToInflux())
+        .addSink(new InfluxDBSink(influxDBConfig))
+        .name("prediction sink");
 
     // .map(obj -> Tuple2.of(obj.productId, 1))
     // .returns(Types.TUPLE(Types.STRING, Types.INT))

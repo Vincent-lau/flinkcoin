@@ -8,9 +8,6 @@ import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.streaming.api.functions.ProcessFunction.Context;
 import org.apache.flink.util.Collector;
 
-
-
-
 public class PriceAverager
     extends KeyedProcessFunction<String, L2UpdateMessage, L2UpdatePrice> {
 
@@ -39,20 +36,18 @@ public class PriceAverager
     // }
 
     double bp = value.getChanges()
-                     .stream()
-                     .filter(c -> c.getSide() == Side.BUY)
-                     .mapToDouble(Change::getPrice)
-                     .average()
-                     .orElse(0.0);
+                    .stream()
+                    .filter(c -> c.getSide() == Side.BUY)
+                    .mapToDouble(Change::getPrice)
+                    .average()
+                    .orElse(0.0);
 
     double sp = value.getChanges()
-                      .stream()
-                      .filter(c -> c.getSide() == Side.SELL)
-                      .mapToDouble(Change::getPrice)
-                      .average()
-                      .orElse(0.0); 
-
-    // avg.update(currentAvg);
+                    .stream()
+                    .filter(c -> c.getSide() == Side.SELL)
+                    .mapToDouble(Change::getPrice)
+                    .average()
+                    .orElse(0.0);
 
     out.collect(new L2UpdatePrice(value, bp, sp));
   }
