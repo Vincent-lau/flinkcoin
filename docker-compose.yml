@@ -27,6 +27,17 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - zookeeper
+  
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: "kafka1"
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: "PLAINTEXT://kafka1:9092"
+      KAFKA_CLUSTERS_0_ZOOKEEPER: "zookeeper:2181"
+    depends_on:
+      - kafka
 
   producer:
     build: ./producer
@@ -74,7 +85,8 @@ services:
     ports:
       - "8086:8086"
     volumes:
-      - ./docker/influxdb-data:/var/lib/influxdb
+      - ./docker/influxdb-data:/var/lib/influxdb2
+      - ${PWD}/docker/influxdb-data/config.yml:/etc/influxdb2/config.yml 
     environment:
       - DOCKER_INFLUCDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=vincent
