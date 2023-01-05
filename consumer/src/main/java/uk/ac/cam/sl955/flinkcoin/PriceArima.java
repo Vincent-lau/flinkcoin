@@ -120,5 +120,6 @@ public class PriceArima
     out.collect(new L2PredictedPrice(prices.iterator().next().getProductId(),
                                      endTs, predictedBuyPrice,
                                      predictedSellPrice, buyMAE, sellMAE));
+
   }
 }

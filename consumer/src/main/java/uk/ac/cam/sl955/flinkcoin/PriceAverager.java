@@ -49,6 +49,7 @@ public class PriceAverager
                     .average()
                     .orElse(0.0);
 
-    out.collect(new L2UpdatePrice(value, bp, sp));
+    out.collect(
+        new L2UpdatePrice(value.getProductId(), value.getTimestamp(), bp, sp));
   }
 }

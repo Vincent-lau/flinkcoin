@@ -11,7 +11,7 @@ public class L2ToInflux extends RichMapFunction<L2UpdatePrice, InfluxDBPoint> {
 
     String measurement = l2.getProductId();
 
-    long timestamp = l2.getTimeLong();
+    long timestamp = l2.getTimestamp();
 
     HashMap<String, Object> fields = new HashMap<>();
     fields.put("buy", l2.getBuyPrice());

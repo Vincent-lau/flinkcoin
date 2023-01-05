@@ -88,7 +88,6 @@ public class DataStreamJob {
         source, WatermarkStrategy.noWatermarks(), "Kafka Source");
 
     DataStream<L2UpdateMessage> parsedData = getL2UpdatesStream(input);
-    // parsedData.addSink(new PrintSinkFunction<>()).name("PrintSink");
 
     DataStream<L2UpdatePrice> processedData =
         parsedData.keyBy(L2UpdateMessage::getProductId)
@@ -96,7 +95,6 @@ public class DataStreamJob {
             .filter(L2UpdatePrice::validPrice)
             .name("processedData");
 
-    // processedData.addSink(new PrintSinkFunction<>()).name("PrintSink");
 
     processedData.map(new L2ToInflux())
         .name("InfluxDB data point")
@@ -112,32 +110,16 @@ public class DataStreamJob {
         .addSink(new InfluxDBSink(influxDBConfig))
         .name("prediction sink");
 
-    // .map(obj -> Tuple2.of(obj.productId, 1))
-    // .returns(Types.TUPLE(Types.STRING, Types.INT))
-    // .keyBy(tuple2 -> tuple2.f0)
-    // .window(TumblingProcessingTimeWindows.of(Time.seconds(15)))
-    // .sum(1)
+    processedData.keyBy(L2UpdatePrice::getProductId)
+        .window(
+            SlidingProcessingTimeWindows.of(Time.seconds(3), Time.seconds(1)))
+        .process(new PriceAutoCorr())
+        .map(new AR2Influx())
+        .addSink(new InfluxDBSink(influxDBConfig))
+        .name("prediction sink");
 
     env.execute("Flink consumer");
 
-    // final StreamExecutionEnvironment env =
-    //     StreamExecutionEnvironment.getExecutionEnvironment();
-
-    // DataStream<Person> flintstones =
-    //     env.fromElements(new Person("Fred", 35), new Person("Wilma", 35),
-    //                      new Person("Pebbles", 2));
-
-    // DataStream<Person> adults =
-    //     flintstones.filter(new FilterFunction<Person>() {
-    //       @Override
-    //       public boolean filter(Person person) throws Exception {
-    //         return person.age >= 18;
-    //       }
-    //     });
-
-    // adults.print();
-
-    // env.execute();
   }
 
   public static DataStream<L2UpdateMessage>
