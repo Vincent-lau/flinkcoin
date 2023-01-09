@@ -4,13 +4,12 @@ import java.util.*;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.streaming.connectors.influxdb.InfluxDBPoint;
 
-public class L2PredToInflux
+public class L2ErrToInflux
     extends RichMapFunction<L2PredictedPrice, InfluxDBPoint> {
 
-  private PriceType priceType;
+  private PriceType errType;
 
-  public L2PredToInflux() { this.priceType = PriceType.ACTUAL; }
-  public L2PredToInflux(PriceType pt) { this.priceType = pt; }
+  public L2ErrToInflux(PriceType pt) { this.errType = pt; }
 
   @Override
   public InfluxDBPoint map(L2PredictedPrice prediction) throws Exception {
@@ -19,15 +18,12 @@ public class L2PredToInflux
 
     HashMap<String, Object> fields = new HashMap<>();
     HashMap<String, String> tags = new HashMap<>();
-    fields.put("buy", prediction.getPrices().f0);
-    fields.put("sell", prediction.getPrices().f1);
-    fields.put("buyErr", prediction.getErr().f0);
-    fields.put("sellErr", prediction.getErr().f1);
+    fields.put("buy", prediction.getErr().f0);
+    fields.put("sell", prediction.getErr().f1);
 
-    tags.put("price type", priceType.toString());
+    tags.put("price type", errType.toString());
 
     return new InfluxDBPoint(measurement, timestamp, tags, fields);
   }
 }
-
 

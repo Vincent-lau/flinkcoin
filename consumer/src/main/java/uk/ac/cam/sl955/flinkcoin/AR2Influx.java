@@ -16,7 +16,7 @@ public class AR2Influx extends RichMapFunction<L2AutoCorr, InfluxDBPoint> {
 
     HashMap<String, Object> fields = new HashMap<>();
     HashMap<String, String> tags = new HashMap<>();
-    tags.put("lag", Integer.toString(randInt + 1));
+    tags.put("lag", Integer.toString(randInt));
     fields.put("buy auto correlation",
                l2AutoCorr.getAutoCorr().get(randInt));
     

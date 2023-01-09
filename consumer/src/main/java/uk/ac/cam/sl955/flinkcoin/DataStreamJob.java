@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
@@ -84,8 +85,11 @@ public class DataStreamJob {
             .enableGzip(true)
             .build();
 
-    final DataStream<String> input = env.fromSource(
-        source, WatermarkStrategy.noWatermarks(), "Kafka Source");
+    final DataStream<String> input =
+        env.fromSource(source,
+                       WatermarkStrategy.<String>forBoundedOutOfOrderness(
+                           Duration.ofMillis(100)),
+                       "Kafka Source");
 
     DataStream<L2UpdateMessage> parsedData = getL2UpdatesStream(input);
 
@@ -95,31 +99,47 @@ public class DataStreamJob {
             .filter(L2UpdatePrice::validPrice)
             .name("processedData");
 
-
     processedData.map(new L2ToInflux())
         .name("InfluxDB data point")
         .addSink(new InfluxDBSink(influxDBConfig))
         .name("InfluxDBSink");
 
-    // TODO change to event time with watermarks?
     processedData.keyBy(L2UpdatePrice::getProductId)
-        .window(
-            SlidingProcessingTimeWindows.of(Time.seconds(3), Time.seconds(1)))
-        .process(new PriceArima())
-        .map(new L2PredToInflux())
+        .process(new PriceExpSmoother())
+        .map(new L2PredToInflux(PriceType.ES_PRED))
         .addSink(new InfluxDBSink(influxDBConfig))
-        .name("prediction sink");
+        .name("exp smoothing prediction sink");
 
     processedData.keyBy(L2UpdatePrice::getProductId)
-        .window(
-            SlidingProcessingTimeWindows.of(Time.seconds(3), Time.seconds(1)))
-        .process(new PriceAutoCorr())
-        .map(new AR2Influx())
+        .process(new PriceExpSmoother())
+        .map(new L2ErrToInflux(PriceType.ES_ERR))
         .addSink(new InfluxDBSink(influxDBConfig))
-        .name("prediction sink");
+        .name("exp smoothing err sink");
+
+    processedData.keyBy(L2UpdatePrice::getProductId)
+        .window(SlidingEventTimeWindows.of(Time.seconds(3), Time.seconds(1)))
+        .process(new PriceArima())
+        .map(new L2PredToInflux(PriceType.ARIMA_PRED))
+        .addSink(new InfluxDBSink(influxDBConfig))
+        .name("arima prediction sink");
+
+    processedData.keyBy(L2UpdatePrice::getProductId)
+        .window(SlidingEventTimeWindows.of(Time.seconds(3), Time.seconds(1)))
+        .process(new PriceArima())
+        .map(new L2ErrToInflux(PriceType.ARIMA_ERR))
+        .addSink(new InfluxDBSink(influxDBConfig))
+        .name("arima prediction err sink");
+
+    // processedData.keyBy(L2UpdatePrice::getProductId)
+    //     .window(
+    //         SlidingProcessingTimeWindows.of(Time.seconds(3),
+    //         Time.seconds(1)))
+    //     .process(new PriceAutoCorr())
+    //     .map(new AR2Influx())
+    //     .addSink(new InfluxDBSink(influxDBConfig))
+    //     .name("prediction sink");
 
     env.execute("Flink consumer");
-
   }
 
   public static DataStream<L2UpdateMessage>

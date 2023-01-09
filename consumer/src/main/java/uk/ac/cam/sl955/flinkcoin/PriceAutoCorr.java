@@ -35,7 +35,7 @@ public class PriceAutoCorr
                         prices.iterator().next().getTimeStr(), buySeries);
     Map<Integer, Double> buyAutoCorr = new HashMap<>();
     double[] buyAutoCorrArray = buyTs.autoCorrelationUpToLag(3);
-    for (int i = 0; i < buyAutoCorrArray.length; i++) {
+    for (int i = 0; i <= buyAutoCorrArray.length; i++) {
       buyAutoCorr.put(i, buyAutoCorrArray[i]);
     }
 
