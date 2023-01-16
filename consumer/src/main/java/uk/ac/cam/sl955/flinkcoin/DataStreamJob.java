@@ -99,6 +99,8 @@ public class DataStreamJob {
             .filter(L2UpdatePrice::validPrice)
             .name("processedData");
 
+
+
     processedData.map(new L2ToInflux())
         .name("InfluxDB data point")
         .addSink(new InfluxDBSink(influxDBConfig))

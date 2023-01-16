@@ -13,23 +13,31 @@ import lombok.ToString;
 @ToString(callSuper = true)
 public class L2UpdatePrice {
 
-  public String productId;
-  public long timestamp;
-  public double buyPrice;
-  public double sellPrice;
-  private transient final static double EPS = 1e-5;
+  @SerializedName("product_id") public String productId;
+  @SerializedName("time_stamp") public long time_stamp;
+  @SerializedName("buy_price") public double buyPrice;
+  @SerializedName("sell_price") public double sellPrice;
 
-  public L2UpdatePrice(String productId, long timestamp, double buyPrice,
+  public L2UpdatePrice() {}
+
+  public L2UpdatePrice(String productId, long time_stamp, double buyPrice,
                        double sellPrice) {
     this.productId = productId;
-    this.timestamp = timestamp;
+    this.time_stamp = time_stamp;
     this.buyPrice = buyPrice;
     this.sellPrice = sellPrice;
   }
 
   public String getTimeStr() {
-    return Instant.ofEpochMilli(timestamp).toString();
+    return Instant.ofEpochMilli(getTimestamp()).toString();
   }
 
-  public boolean validPrice() { return buyPrice > EPS && sellPrice > EPS; }
+  public boolean validPrice() {
+    final double EPS = 1e-5;
+    return buyPrice > EPS && sellPrice > EPS;
+  }
+
+  public long getTimestamp() {
+    return time_stamp;
+  }
 }

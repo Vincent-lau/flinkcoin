@@ -50,9 +50,11 @@ services:
 
 
   jobmanager:
-    image: flink:latest
+    image: pyflink
+    # image: flink:latest
     ports:
       - "8081:8081"
+      - "9249:9249"
     command: jobmanager
     environment:
       - |
@@ -60,7 +62,9 @@ services:
         jobmanager.rpc.address: jobmanager        
 
   taskmanager:
-    image: flink:latest
+    image: pyflink
+    ports:
+      - "9250:9249"
     depends_on:
       - jobmanager
     command: taskmanager
@@ -97,13 +101,35 @@ services:
       - jobmanager
       - taskmanager
     
+  # elasticsearch:
+  #   image: elasticsearch:8.6.0
+  #   container_name: es01
+  #   ports:
+  #     - "9200:9200"
+  #     - "9300:9300"
+  #   environment:
+  #     - discovery.type=single-node
+  #     - ELASTIC_PASSWORD=20040209
+
+  # kibana:
+  #   image: kibana:8.6.0
+  #   ports:
+  #     - "5601:5601"
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #     - ELASTICSEARCH_USERNAME=elastic
+  #     - ELASTICSEARCH_PASSWORD=20040209
+  #   depends_on:
+  #     - elasticsearch
 
   grafana:
     image: grafana/grafana:8.2.6
     ports:
       - "3000:3000"
     depends_on:
+      - prometheus
       - influxdb
+
       
     # volumes:
     #   - ./docker/grafana/provisioning/:/etc/grafana/provisioning/

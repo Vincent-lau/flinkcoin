@@ -84,6 +84,24 @@ under the License.
 				<scope>provided</scope>
 		</dependency>
 
+<!-- <dependency>
+  <groupId>org.apache.flink</groupId>
+  <artifactId>flink-connector-elasticsearch7</artifactId>
+  <version>1.16.0</version>
+</dependency> -->
+
+
+		<!-- <dependency>
+				<groupId>org.deeplearning4j</groupId>
+				<artifactId>deeplearning4j-core</artifactId>
+				<version>1.0.0-M2.1</version>
+		</dependency>
+		<dependency>
+				<groupId>org.nd4j</groupId>
+				<artifactId>nd4j-native-platform</artifactId>
+				<version>1.0.0-M2.1</version>
+		</dependency> -->
+
 		<!-- Add connector dependencies here. They must be in the default scope (compile). -->
 
 
@@ -92,6 +110,13 @@ under the License.
 			<artifactId>flink-connector-kafka</artifactId>
 			<version>1.16.0</version>
 		</dependency>
+
+
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+			<version>3.3.1</version>
+	</dependency>
 		
 		<dependency>
 			<groupId>org.apache.bahir</groupId>
