@@ -37,11 +37,11 @@ public class DataStreamJob {
   public static final String HOST_IP = "172.18.0.1";
 
   public static String getEnvironmentVariable(final String key,
-                                              final String defaultValue) {
-    final String value = System.getenv(key);
-    if (value != null) {
-      log.info("Value read from environment: {}={}", key, value);
-      return value;
+          final String defaultValue) {
+      final String value = System.getenv(key);
+      if (value != null) {
+          log.info("Value read from environment: {}={}", key, value);
+          return value;
     } else {
       log.info("Value not found in environment, using default value: {}={}",
                key, defaultValue);

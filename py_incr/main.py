@@ -39,7 +39,7 @@ class PriceArima(KeyedProcessFunction):
             "metric", Types.PICKLED_BYTE_ARRAY()))
         self.counter = runtime_context.get_state(ValueStateDescriptor(
             "counter", Types.INT()))
-        
+
 
     def process_element(self, value, ctx: 'KeyedProcessFunction.Context'):
         # retrieve the current count
@@ -68,7 +68,7 @@ class PriceArima(KeyedProcessFunction):
         new_model = current_model.learn_one(value['buy_mean'])
         self.model.update(new_model)
         self.metric.update(current_metric)
-        
+
         if c < 3000:
             yield {"product_id": value['product_id'],
                 "price_type": "SNARIMAX prediction",
